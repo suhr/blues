@@ -24,7 +24,7 @@ def typeof: term -> ty -> o.
 
 % →-introduction
 typeof (lam F) (arrow A B) :-
-    \pi(x: term) typeof x A => typeof (F x) B.
+    \pi(x: term) typeof x A -> typeof (F x) B.
 
 % →-elimination
 typeof (app Ex Ey) T :-
@@ -36,5 +36,5 @@ typeof u unit.
 
 
 % Queries
-eval (app (lam \(x) x) (lam \(y) app y y)) E?
-typeof (app u (lam \(x) x)) T?
+?- eval (app (lam \(x) x) (lam \(y) app y y)) E.
+?- typeof (app u (lam \(x) x)) T.

@@ -48,6 +48,7 @@ dependencies = [
  "pest",
  "pest_derive",
  "smol_str",
+ "wrapterm",
 ]
 
 [[package]]
@@ -154,7 +155,7 @@ dependencies = [
  "pest",
  "pest_meta",
  "proc-macro2 1.0.9",
- "quote 1.0.2",
+ "quote 1.0.3",
  "syn 1.0.16",
 ]
 
@@ -198,9 +199,9 @@ dependencies = [
 
 [[package]]
 name = "quote"
-version = "1.0.2"
+version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "053a8c8bcc71fcce321828dc897a98ab9760bef03a4fc36693c231e5b3216cfe"
+checksum = "2bdc6c187c65bca4260c9011c9e3132efe4909da44726bad24cf7572ae338d7f"
 dependencies = [
  "proc-macro2 1.0.9",
 ]
@@ -241,7 +242,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "123bd9499cfb380418d509322d7a6d52e5315f064fe4b3ad18a53d6b92c07859"
 dependencies = [
  "proc-macro2 1.0.9",
- "quote 1.0.2",
+ "quote 1.0.3",
  "unicode-xid 0.2.0",
 ]
 
@@ -302,3 +303,11 @@ name = "winapi-x86_64-pc-windows-gnu"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
+
+[[package]]
+name = "wrapterm"
+version = "0.1.0"
+source = "git+https://github.com/suhr/wrapterm.git#3fe5e3daa21be439a057321712fefa63427db6e0"
+dependencies = [
+ "annotate-snippets",
+]

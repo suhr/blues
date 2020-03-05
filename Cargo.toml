@@ -15,3 +15,6 @@ moniker = "*"
 [dependencies.annotate-snippets]
 version = "0.6"
 features = ["color"]
+
+[dependencies.wrapterm]
+git = "https://github.com/suhr/wrapterm.git"
