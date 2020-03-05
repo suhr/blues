@@ -1,0 +1,68 @@
+root = { SOI ~ (mod_decl | use_decl | ty_def | clause | query)* ~ EOI }
+
+mod_decl = { "mod" ~ name ~ "." }
+
+use_decl = { "use" ~ use_name ~ "." }
+use_name = @{ name ~ ".*"? }
+
+ty_def = { "def" ~ ty_expr ~ "." }
+ty_expr = { ty_arr | ty_basic }
+ty_arr = { ty_basic ~ "->" ~ ty_expr }
+ty_basic = _{ ty_parren | ty_app | name }
+ty_parren = { "(" ~ ty_expr ~ ")" }
+ty_app = { (ty_parren | name) ~ ty_basic }
+
+clause = { cl_0 ~ "." }
+query = { cl_0 ~ "?" }
+
+cl_0 = { cl_bind | cl_1 }
+cl_1 = _{ cl_coimp | cl_2 }
+cl_2 = _{ cl_imp | cl_3 }
+cl_3 = _{ cl_and | cl_4 }
+cl_4 = _{ cl_or | cl_5 }
+cl_5 = _{ cl_encl | cl_app | val }
+
+cl_bind = _{ cl_pi | cl_sigma | cl_lam }
+cl_pi = { "\\pi" ~ "(" ~ bind_var ~ ")" }
+cl_sigma = { "\\sigma" ~ "(" ~ bind_var ~ ")" }
+cl_lam = { "\\(" ~ bind_var ~ ")" ~ cl_0 }
+bind_var = { varname ~ (":" ~ ty_expr)? }
+
+cl_coimp = { cl_2 ~ ":-" ~ cl_1 }
+cl_imp = { cl_3 ~ "->" ~ cl_2 }
+cl_and = { cl_4 ~ "," ~ cl_3 }
+cl_or = { cl_5 ~ "|" ~ }
+cl_encl = { "(" cl_0 ")" }
+cl_app = { (cl_encl | val) ~ (cl_5 | cl_bind) }
+
+val = _{ string | number | name }
+
+varname = @{
+    (XID_START ~ XID_CONTINUE*)
+    | ("_" ~ XID_CONTINUE*)
+}
+name = @{
+    (XID_START ~ name_tail)
+    | ("_" ~ name_tail)
+}
+name_tail = @{ (("." | XID_CONTINUE)* ~ XID_CONTINUE) | "" }
+
+number = _{ hexdecimal | float | decimal }
+hexdecimal = @{ "0x" ~ ASCII_HEX_DIGIT+ }
+float = @{
+    (decimal ~ "." ~ pos_decimal ~ exp?)
+    | (decimal ~ exp)
+}
+decimal = @{ "-"? ~ ASCII_DIGIT+ }
+pos_decimal = @{ ASCII_DIGIT+ }
+exp = @{ ("e" | "E") ~ ("+" | "-")? ~ pos_decimal}
+
+string = ${ "\"" ~ inner ~ "\"" }
+inner = @{ char* }
+char = {
+    !("\"" | "\\") ~ ANY
+    | "\\" ~ ("\"" | "\\" | "/" | "b" | "f" | "n" | "r" | "t")
+}
+
+WHITESPACE = _{ " " | NEWLINE | "\t" }
+COMMENT = _{ "%" ~ (!NEWLINE ~ ANY)* ~ (NEWLINE | EOI) }

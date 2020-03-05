@@ -1,0 +1,40 @@
+def term: type.
+
+% `[x] M` (de Bruijn notation)
+def lam: (term -> term) -> term.
+% `(M) N`
+def app: term -> term -> term.
+% A constructor of the unit type
+def u: term.
+
+% Operational semantics
+def step: term -> term -> o.
+step (app E (lam F)) (F E).
+
+def eval: term -> term -> o.
+eval Ex Ey :-
+    ifte (step Ex Ez) (eval Ez Ey) (eq Ex Ey).
+
+% Types
+def ty: type.
+def arrow: ty -> ty -> ty.
+def unit: ty.
+
+def typeof: term -> ty -> o.
+
+% →-introduction
+typeof (lam F) (arrow A B) :-
+    \pi(x: term) typeof x A => typeof (F x) B.
+
+% →-elimination
+typeof (app Ex Ey) T :-
+    typeof Ex Tx,
+    typeof Ey (arrow Tx T).
+
+% Unit type
+typeof u unit.
+
+
+% Queries
+eval (app (lam \(x) x) (lam \(y) app y y)) E?
+typeof (app u (lam \(x) x)) T?
