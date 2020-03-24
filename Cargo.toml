@@ -11,6 +11,8 @@ pest = "2.0"
 pest_derive = "2.0"
 smol_str = "0.1"
 moniker = "*"
+bit-matrix = "*"
+ena = "*"
 
 [dependencies.annotate-snippets]
 version = "0.6"

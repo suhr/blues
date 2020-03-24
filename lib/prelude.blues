@@ -1,0 +1,11 @@
+infix n =.
+
+def (=): A -> A -> o.
+A = A.
+
+def success: o.
+def failure: o.
+success.
+
+def pair: A -> type.
+def mkpair: A -> A -> pair A.

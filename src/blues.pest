@@ -3,6 +3,7 @@ root = { SOI ~ decls* ~ EOI }
 decls = _{
     mod_decl
     | use_decl
+    | infix_decl
     | ty_def
     | query
     | clause
@@ -10,42 +11,66 @@ decls = _{
 
 mod_decl = { "mod" ~ name ~ "." }
 
-use_decl = { "use" ~ use_name ~ "." }
-use_name = @{ name ~ ".*"? }
+use_decl = { "use" ~ name ~ (":" ~ use_seq)? ~  "." }
+use_seq = { use_item+ }
+use_item = { glob | "(" ~ op ~ ")" | name }
+glob = { "*" }
 
-ty_def = { "def" ~ name ~ ":" ~ ty_expr ~ "." }
-ty_expr = _{ ty_pi | ty_arr | ty_basic }
-ty_pi = { "\\pi" ~ "(" ~ bind_var ~ ")" ~ ty_expr }
-ty_arr = { ty_basic ~ "->" ~ ty_expr }
+infix_decl = { "infix" ~ assoc ~ op ~ prec? ~ "." }
+assoc = { "l" | "r" | "n" }
+prec = { comp ~ op }
+comp = { "<" | "=" | ">" }
+
+ty_def = { "def" ~ ty_name ~ ":" ~ ty_expr ~ "." }
+ty_name = _{ name | ("(" ~ op ~ ")") }
+ty_expr = _{ ty_basic ~ ty_arr* }
+ty_arr = { "->" ~ ty_basic }
 ty_basic = _{ ty_parren | ty_app | name }
 ty_parren = { "(" ~ ty_expr ~ ")" }
-ty_app = { (ty_parren | name) ~ ty_basic }
+ty_app = { (ty_parren | cl_list | name) ~ ty_basic }
 
-clause = { cl_0 ~ "." }
-query = { "?-" ~ cl_0 ~ "." }
+clause = { expr ~ "." }
+query = { "?-" ~ expr ~ "." }
 
+expr = { cl_0 }
 cl_0 = _{ cl_bind | cl_1 }
-cl_1 = _{ cl_2 ~ cl_coimp? }
-cl_2 = _{ cl_3 ~ cl_imp? }
-cl_3 = _{ cl_4 ~ cl_and? }
-cl_4 = _{ cl_5 ~ cl_or? }
-cl_5 = _{ cl_app | cl_encl | val }
+cl_1 = _{ cl_2 ~ cl_infix? }
+cl_2 = _{ cl_app | cl_encl | cl_list | val }
 
-cl_bind = _{ cl_pi | cl_sigma | cl_lam }
-cl_pi = { "\\pi" ~ "(" ~ bind_var ~ ")" ~ cl_0 }
-cl_sigma = { "\\sigma" ~ "(" ~ bind_var ~ ")" ~ cl_0 }
-cl_lam = { "\\(" ~ bind_var ~ ")" ~ cl_0 }
+cl_bind = { bind_head ~ bind_list ~ ")" ~ cl_0 }
+bind_head = @{ "\\" ~ name? ~ "(" }
+bind_list = { bind_var ~ ("," ~ bind_var)* }
 bind_var = { varname ~ (":" ~ ty_expr)? }
 
-cl_coimp = { ":-" ~ cl_0 }
-cl_imp = { "->" ~ cl_0 }
-cl_and = { "," ~ cl_0 }
-cl_or = { "|" ~ cl_0 }
+cl_infix = { op ~ cl_0 }
 cl_encl = { "(" ~ cl_0 ~ ")" }
-cl_app = { (cl_encl | val) ~ (cl_5 | cl_bind) }
+cl_app = { (cl_encl | val) ~ (cl_2 | cl_bind) }
 
-val = _{ string | number | name }
+cl_list = { "[" ~ cl_list_seq? ~ cl_list_rem? ~ "]" }
+cl_list_seq = { cl_list_expr ~ ("," ~ cl_list_expr)* }
+cl_list_rem = _{ "|" ~ cl_list_expr }
+cl_list_expr = { cl_2 ~ cl_infix_2* }
+cl_infix_2 = { (!("," | "|") ~ op) ~ (cl_bind | cl_2) }
 
+val = _{ string | number | fullname }
+
+op = @{ (
+    '!'..'$'
+    | "&"
+    | '*'..'-'
+    | "/"
+    | ':'..'@'
+    | "^"
+    | "|"
+    | "~"
+    |  '∀'..'⋿'
+    | '⨀'..'⫿'
+    | '←'..'⇿'
+    | '⟰'..'⟿'
+    | '⤀'..'⥿'
+)+ }
+
+fullname = @{ name ~ (".(" ~ op ~")")? }
 varname = @{
     (XID_START ~ XID_CONTINUE*)
     | ("_" ~ XID_CONTINUE*)
@@ -54,8 +79,7 @@ name = @{
     (XID_START ~ name_tail)
     | ("_" ~ name_tail)
 }
-name_tail = @{ XID_CONTINUE* }
-// name_tail = @{ (("." | XID_CONTINUE)* ~ XID_CONTINUE) | "" }
+name_tail = @{ XID_CONTINUE* ~ ("." ~ XID_CONTINUE+)* }
 
 number = _{ hexdecimal | float | decimal }
 hexdecimal = @{ "0x" ~ ASCII_HEX_DIGIT+ }

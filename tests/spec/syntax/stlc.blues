@@ -24,7 +24,7 @@ def typeof: term -> ty -> o.
 
 % →-introduction
 typeof (lam F) (arrow A B) :-
-    \pi(x: term) typeof x A -> typeof (F x) B.
+    \pi(x: term) typeof x A => typeof (F x) B.
 
 % →-elimination
 typeof (app Ex Ey) T :-
