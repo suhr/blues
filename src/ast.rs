@@ -1,9 +1,4 @@
-use std::collections::HashMap;
-use std::path::Path;
-use std::{cmp::Ordering, path::PathBuf};
-use annotate_snippets::snippet::Snippet;
-use pest::iterators::Pair;
-use pest_derive::Parser;
+use std::cmp::Ordering;
 use smol_str::SmolStr;
 
 use wrapterm::*;
@@ -35,53 +30,53 @@ pub enum Assoc {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct OpDecl {
-    op: SmolStr,
-    assoc: Assoc,
-    rel: Option<(Ordering, SmolStr)>
+    pub op: Ranged<SmolStr>,
+    pub assoc: Ranged<Assoc>,
+    pub rel: Option<Ranged<(Ordering, SmolStr)>>
 }
 
-fn builtin_decls() -> Vec<OpDecl> {
-    use Ordering::*;
-    use Assoc as A;
+// fn builtin_decls() -> Vec<OpDecl> {
+//     use Ordering::*;
+//     use Assoc as A;
 
-    vec![
-        OpDecl {
-            op: ":-".into(),
-            assoc: A::None,
-            rel: None
-        },
-        OpDecl {
-            op: ";".into(),
-            assoc: A::Right,
-            rel: Some((Greater, ":-".into()))
-        },
-        OpDecl {
-            op: ",".into(),
-            assoc: A::Right,
-            rel: Some((Greater, ";".into()))
-        },
-        OpDecl {
-            op: "=>".into(),
-            assoc: A::Right,
-            rel: Some((Greater, ",".into()))
-        }
-    ]
-}
+//     vec![
+//         OpDecl {
+//             op: ":-".into(),
+//             assoc: A::None,
+//             rel: None
+//         },
+//         OpDecl {
+//             op: ";".into(),
+//             assoc: A::Right,
+//             rel: Some((Greater, ":-".into()))
+//         },
+//         OpDecl {
+//             op: ",".into(),
+//             assoc: A::Right,
+//             rel: Some((Greater, ";".into()))
+//         },
+//         OpDecl {
+//             op: "=>".into(),
+//             assoc: A::Right,
+//             rel: Some((Greater, ",".into()))
+//         }
+//     ]
+// }
 
-pub struct OpLattice {
-    ops: Vec<(SmolStr, usize, Assoc)>,
-    lattice: bit_matrix::BitMatrix
-}
+// pub struct OpLattice {
+//     ops: Vec<(SmolStr, usize, Assoc)>,
+//     lattice: bit_matrix::BitMatrix
+// }
 
-impl OpLattice {
-    pub fn from_decls(decls: &[OpDecl]) -> OpLattice {
-        todo!()
-    }
+// impl OpLattice {
+//     pub fn from_decls(decls: &[OpDecl]) -> OpLattice {
+//         todo!()
+//     }
 
-    pub fn cmp(&self, left: SmolStr, right: SmolStr) -> Option<Ordering> {
-        todo!()
-    }
-}
+//     pub fn cmp(&self, left: SmolStr, right: SmolStr) -> Option<Ordering> {
+//         todo!()
+//     }
+// }
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Var {
