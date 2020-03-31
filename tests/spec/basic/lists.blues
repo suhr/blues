@@ -1,0 +1,8 @@
+car [X|Y] X.
+cdr [X|Y] Y.
+cons X R [X|R].
+
+member X [X|R].
+member X [Y|R] :- member X R.
+
+foo [2+2, 2*2, 2^2].

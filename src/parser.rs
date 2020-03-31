@@ -423,7 +423,7 @@ fn parse_list(
 
     let tail = inner.next()
         .map(|p| Box::new(
-            parse_raw_expr(p.into_inner().next().unwrap(), file_id)
+            parse_raw_expr(p, file_id)
         ));
 
     Ranged {
