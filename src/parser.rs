@@ -36,7 +36,7 @@ where F: FnOnce(Pair<Rule>) -> T {
     }
 }
 
-enum RawExpr {
+pub enum RawExpr {
     Bind {
         head: Option<Ranged<SmolStr>>,
         vars: Ranged<Vec<Ranged<crate::ast::Var>>>,
@@ -57,9 +57,9 @@ enum RawExpr {
     String(SmolStr),
 }
 
-struct InfixTail {
-    op: Ranged<SmolStr>,
-    expr: Ranged<RawExpr>
+pub struct InfixTail {
+    pub op: Ranged<SmolStr>,
+    pub expr: Ranged<RawExpr>
 }
 
 #[derive(Default, Debug, Clone, PartialEq)]
@@ -67,12 +67,12 @@ pub struct ModulePath {
     pub mods: Vec<SmolStr>
 }
 
-struct UseDecl {
-    path: Ranged<ModulePath>,
-    items: Vec<Ranged<UseItem>>
+pub struct UseDecl {
+    pub path: Ranged<ModulePath>,
+    pub items: Vec<Ranged<UseItem>>
 }
 
-enum UseItem {
+pub enum UseItem {
     Glob,
     Name(SmolStr),
     Op(SmolStr),
@@ -248,7 +248,8 @@ fn parse_ty_expr(
         },
         Rule::name =>
             TyExpr::Name(pair.as_str().into()),
-        _ => todo!()
+        _ => 
+            unreachable!()
     };
 
     Ranged {
@@ -306,7 +307,8 @@ fn parse_infixless(
             parse_app(pair, file_id),
         Rule::cl_encl =>
             parse_raw_expr(pair, file_id),
-        Rule::cl_list => todo!(),
+        Rule::cl_list => 
+            parse_list(pair, file_id),
         _ =>
             parse_value(pair, file_id),
     }
@@ -378,10 +380,11 @@ fn parse_app(
     pair: Pair<Rule>,
     file_id: usize
 ) -> Ranged<RawExpr> {
+    println!("{}", pair);
     let loc = pair_location(&pair, file_id);
     let mut inner = pair.into_inner();
     let mut exprs = vec![
-        parse_raw_expr(inner.next().unwrap(), file_id)
+        parse_infixless(inner.next().unwrap(), file_id)
     ];
     let mut right = inner.next().unwrap();
     loop {
@@ -389,13 +392,13 @@ fn parse_app(
 
         inner = right.into_inner();
         exprs.push(
-            parse_raw_expr(inner.next().unwrap(), file_id)
+            parse_infixless(inner.next().unwrap(), file_id)
         );
 
         right = inner.next().unwrap()
     }
 
-    exprs.push(parse_raw_expr(right, file_id));
+    exprs.push(parse_infixless(right, file_id));
 
     Ranged {
         data: RawExpr::App(exprs),
@@ -451,14 +454,14 @@ fn parse_value(
     })
 }
 
-struct RawModule {
-    path: ModulePath,
-    mods: Vec<Ranged<ModulePath>>,
-    uses: Vec<Ranged<UseDecl>>,
-    ops: Vec<Ranged<crate::ast::OpDecl>>,
-    ty_decls: Vec<crate::ast::TyDecl>,
-    clauses: Vec<Ranged<RawExpr>>,
-    queries: Vec<Ranged<RawExpr>>,
+pub struct RawModule {
+    pub path: ModulePath,
+    pub mods: Vec<Ranged<ModulePath>>,
+    pub uses: Vec<Ranged<UseDecl>>,
+    pub ops: Vec<Ranged<crate::ast::OpDecl>>,
+    pub ty_decls: Vec<crate::ast::TyDecl>,
+    pub clauses: Vec<Ranged<RawExpr>>,
+    pub queries: Vec<Ranged<RawExpr>>,
 }
 
 #[derive(Debug, Clone)]
@@ -503,7 +506,7 @@ impl Report for LoadErrorKind {
 }
 
 pub struct ModuleLoader<'a> {
-    files: FileTable,
+    files: &'a mut FileTable,
     errata: &'a mut Errata,
     queue: Vec<LoadTask>,
     loaded: Vec<RawModule>,
@@ -533,7 +536,16 @@ fn get_module_path(task: &LoadTask) -> Result<PathBuf, LoadErrorKind> {
 }
 
 impl<'a> ModuleLoader<'a> {
-    fn load_file<P>(&mut self, path: P) -> Result<(), ()>
+    pub fn new(file_table: &'a mut FileTable, errata: &'a mut Errata) -> ModuleLoader<'a> {
+        ModuleLoader {
+            files: file_table,
+            errata,
+            queue: vec![],
+            loaded: vec![]
+        }
+    }
+
+    pub fn load_file<P>(&mut self, path: P) -> Result<(), ()>
     where P: AsRef<Path> {
         let module_name = get_module_name(path.as_ref());
         let base_path = path.as_ref().parent().unwrap().to_owned();
@@ -550,11 +562,10 @@ impl<'a> ModuleLoader<'a> {
     }
 
     fn run_loader(&mut self) -> Result<(), ()> {
-        self.load_prelude();
-
         while let Some(task) = self.queue.pop() {
             self.run_task(task)?
         }
+        self.load_prelude();
 
         Ok(())
     }
@@ -590,7 +601,7 @@ impl<'a> ModuleLoader<'a> {
         let path = self.errata.push_err(path)?;
 
         let file_id = self.files.append(path.clone());
-        if file_id == self.files.files().len() - 1 {
+        if file_id != self.files.files().len() - 1 {
             let err = LoadErrorKind::AlreadyLoaded(import_loc.unwrap());
             self.errata.push_err(Err(err))?;
         }

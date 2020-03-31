@@ -37,7 +37,7 @@ cl_0 = _{ cl_bind | cl_1 }
 cl_1 = _{ cl_2 ~ cl_infix? }
 cl_2 = _{ cl_app | cl_encl | cl_list | val }
 
-cl_bind = { bind_head ~ bind_list ~ ")" ~ cl_0 }
+cl_bind = { bind_head ~ bind_list ~ ")" ~ expr }
 bind_head = ${ "\\" ~ name? ~ "(" }
 bind_list = { bind_var ~ ("," ~ bind_var)* }
 bind_var = { varname ~ (":" ~ ty_expr)? }

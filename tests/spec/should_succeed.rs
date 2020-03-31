@@ -1,4 +1,4 @@
-use wrapterm::Pass;
+// use wrapterm::Pass;
 
 const SPEC_DIR: &'static str =
     concat!(env!("CARGO_MANIFEST_DIR"), "/tests/spec");
@@ -8,12 +8,12 @@ const SPEC_DIR: &'static str =
     let path = std::path::PathBuf::from(path);
     
     let mut errata = wrapterm::Errata::new();
-    let mut loader = blues::ast::FileLoader::new();
+    let mut file_table = wrapterm::FileTable::new();
+    let mut loader = blues::parser::ModuleLoader::new(&mut file_table, &mut errata);
     
-    let res = loader.run(&mut errata, path);
+    let res = loader.load_file(path);
 
     if res.is_err() {
-        let file_table = loader.into_file_table();
         let errors = errata.format_all(&file_table);
         panic!("{}", errors);
     }
@@ -24,12 +24,12 @@ const SPEC_DIR: &'static str =
     let path = std::path::PathBuf::from(path);
     
     let mut errata = wrapterm::Errata::new();
-    let mut loader = blues::ast::FileLoader::new();
+    let mut file_table = wrapterm::FileTable::new();
+    let mut loader = blues::parser::ModuleLoader::new(&mut file_table, &mut errata);
     
-    let res = loader.run(&mut errata, path);
+    let res = loader.load_file(path);
 
     if res.is_err() {
-        let file_table = loader.into_file_table();
         let errors = errata.format_all(&file_table);
         panic!("{}", errors);
     }
